@@ -4,45 +4,48 @@ package com.sunno.server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by SQ_BXZ on 2018-02-10.
+ *  线程池
+ *  处理高并发
+ *
  */
 public class SocketServerV3 {
 
     public static void main(String[] args) throws IOException {
         int port = 55555;
         ServerSocket serverSocket = new ServerSocket(port);
-        int count = 1 ;
+
+        // 线程池
+        ExecutorService threadPool = Executors.newFixedThreadPool(100);
+        int count = 0 ;
         while (true){
-            System.out.println("server:"+count+"---开启");
-            Socket socket = serverSocket.accept();
-            // 获取请求,建立缓冲区进行读取
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(),"utf-8"));
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-            System.out.println("get message from client: " + stringBuilder);
             count++;
-            socket.close();
+            Socket socket = serverSocket.accept();
+            System.out.println("server:"+count+"---开启");
+            Runnable runnable=()->{
+                try {
+                    // 建立好连接后，从socket中获取输入流，并建立缓冲区进行读取
+                    InputStream inputStream = socket.getInputStream();
+                    byte[] bytes = new byte[1024];
+                    int len;
+                    StringBuilder sb = new StringBuilder();
+                    while ((len = inputStream.read(bytes)) != -1) {
+                        // 注意指定编码格式，发送方和接收方一定要统一，建议使用UTF-8
+                        sb.append(new String(bytes, 0, len, "UTF-8"));
+                    }
+                    System.out.println("get message from client: " + sb);
+                    inputStream.close();
+                    socket.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            };
+            threadPool.submit(runnable);
+
         }
-
-
-
-        // 建立链接
-
-
-
-        // 输出响应
-//        String msg = "server--响应数据---"+stringBuilder;
-//        OutputStream outputStream = socket.getOutputStream();
-//        outputStream.write(msg.getBytes("utf-8"));
-//        outputStream.close();
-//        socket.close();
-//        serverSocket.close();
     }
-
-
 }

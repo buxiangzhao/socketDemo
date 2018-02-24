@@ -15,7 +15,7 @@ public class SocketClientV3 {
         // 与服务器建立链接
         Socket socket = new Socket(host,port);
         // 请求参数
-        String msg = "你好,今天就要放假了";
+        String msg = "你好,今天就要放假了1";
         OutputStream outputStream = socket.getOutputStream();
         outputStream.write(msg.getBytes("utf-8"));
         // 通知服务器 数据发送完毕
